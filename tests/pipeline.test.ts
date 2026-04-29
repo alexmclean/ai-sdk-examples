@@ -17,7 +17,8 @@ vi.mock("../src/ai/evaluate.js", () => ({
 
 const { runPipeline } = await import("../src/pipeline.js");
 
-const fakeModel = {} as LanguageModel;
+const fakeGenModel = { id: "gen" } as unknown as LanguageModel;
+const fakeEvalModel = { id: "eval" } as unknown as LanguageModel;
 
 function makeEval(quality: number, ai: number): Evaluation {
   return {
@@ -37,7 +38,8 @@ function baseConfig(overrides: Partial<PipelineConfig> = {}): PipelineConfig {
     maxIterations: 3,
     qualityThreshold: 8,
     aiLikelihoodThreshold: 4,
-    model: "claude-sonnet-4-6",
+    genModel: "anthropic:claude-sonnet-4-6",
+    evalModel: "anthropic:claude-sonnet-4-6",
     ...overrides,
   };
 }
@@ -65,7 +67,8 @@ describe("runPipeline", () => {
     evaluateLetterMock.mockResolvedValueOnce(makeEval(9, 2));
 
     const out = await runPipeline(baseConfig({ outputDir: tempDir }), {
-      model: fakeModel,
+      genModel: fakeGenModel,
+      evalModel: fakeEvalModel,
       extractResume: async () => "resume text",
       fetchPosting: async () => fakePosting,
     });
@@ -75,6 +78,9 @@ describe("runPipeline", () => {
     expect(out.result.evaluation.qualityScore).toBe(9);
     expect(generateLetterMock).toHaveBeenCalledTimes(1);
     expect(evaluateLetterMock).toHaveBeenCalledTimes(1);
+    // gen and eval models are routed correctly
+    expect(generateLetterMock.mock.calls[0]?.[0]).toBe(fakeGenModel);
+    expect(evaluateLetterMock.mock.calls[0]?.[0]).toBe(fakeEvalModel);
   });
 
   it("iterates and stops as soon as thresholds are met", async () => {
@@ -88,7 +94,8 @@ describe("runPipeline", () => {
     const out = await runPipeline(
       baseConfig({ outputDir: tempDir, maxIterations: 5 }),
       {
-        model: fakeModel,
+        genModel: fakeGenModel,
+        evalModel: fakeEvalModel,
         extractResume: async () => "resume",
         fetchPosting: async () => fakePosting,
       }
@@ -112,7 +119,8 @@ describe("runPipeline", () => {
     const out = await runPipeline(
       baseConfig({ outputDir: tempDir, maxIterations: 3 }),
       {
-        model: fakeModel,
+        genModel: fakeGenModel,
+        evalModel: fakeEvalModel,
         extractResume: async () => "resume",
         fetchPosting: async () => fakePosting,
       }
@@ -133,7 +141,8 @@ describe("runPipeline", () => {
       .mockResolvedValueOnce(makeEval(9, 2));
 
     await runPipeline(baseConfig({ outputDir: tempDir }), {
-      model: fakeModel,
+      genModel: fakeGenModel,
+      evalModel: fakeEvalModel,
       extractResume: async () => "resume",
       fetchPosting: async () => fakePosting,
     });
@@ -157,7 +166,8 @@ describe("runPipeline", () => {
     evaluateLetterMock.mockResolvedValueOnce(makeEval(9, 2));
 
     const out = await runPipeline(baseConfig({ outputDir: tempDir }), {
-      model: fakeModel,
+      genModel: fakeGenModel,
+      evalModel: fakeEvalModel,
       extractResume: async () => "resume",
       fetchPosting: async () => fakePosting,
     });
@@ -176,7 +186,8 @@ describe("runPipeline", () => {
     evaluateLetterMock.mockResolvedValueOnce(makeEval(9, 2));
 
     await runPipeline(baseConfig({ outputDir: tempDir }), {
-      model: fakeModel,
+      genModel: fakeGenModel,
+      evalModel: fakeEvalModel,
       extractResume: async () => {
         order.push("resume:start");
         await new Promise((r) => setTimeout(r, 20));

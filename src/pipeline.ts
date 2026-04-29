@@ -14,7 +14,8 @@ import {
 } from "./schemas.js";
 
 export interface PipelineDeps {
-  model: LanguageModel;
+  genModel: LanguageModel;
+  evalModel: LanguageModel;
   fetchImpl?: typeof fetch;
   extractResume?: (path: string) => Promise<string>;
   fetchPosting?: (url: string) => Promise<JobPosting>;
@@ -57,7 +58,8 @@ export async function runPipeline(
     config,
     resume,
     posting,
-    model: deps.model,
+    genModel: deps.genModel,
+    evalModel: deps.evalModel,
     log,
   });
 
@@ -79,20 +81,21 @@ interface IterateArgs {
   config: PipelineConfig;
   resume: string;
   posting: JobPosting;
-  model: LanguageModel;
+  genModel: LanguageModel;
+  evalModel: LanguageModel;
   log: (msg: string) => void;
 }
 
 async function iterateUntilGoodEnough(
   args: IterateArgs
 ): Promise<GenerationResult> {
-  const { config, resume, posting, model, log } = args;
+  const { config, resume, posting, genModel, evalModel, log } = args;
   const history: Attempt[] = [];
 
   for (let i = 1; i <= config.maxIterations; i++) {
     const previous = history[history.length - 1];
     log(`Generating draft ${i}/${config.maxIterations}...`);
-    const letter = await generateLetter(model, {
+    const letter = await generateLetter(genModel, {
       resume,
       jobPosting: posting.text,
       jobTitle: posting.title,
@@ -101,7 +104,7 @@ async function iterateUntilGoodEnough(
     });
 
     log(`Evaluating draft ${i}...`);
-    const evaluation = await evaluateLetter(model, {
+    const evaluation = await evaluateLetter(evalModel, {
       letter,
       jobPosting: posting.text,
     });

@@ -9,6 +9,8 @@ export interface RawCliArgs {
   quality?: string;
   ai?: string;
   model?: string;
+  "gen-model"?: string;
+  "eval-model"?: string;
 }
 
 const KNOWN_KEYS = new Set<keyof RawCliArgs>([
@@ -20,6 +22,8 @@ const KNOWN_KEYS = new Set<keyof RawCliArgs>([
   "quality",
   "ai",
   "model",
+  "gen-model",
+  "eval-model",
 ]);
 
 export function parseArgv(argv: readonly string[]): RawCliArgs {
@@ -41,10 +45,16 @@ export function parseArgv(argv: readonly string[]): RawCliArgs {
   return args;
 }
 
+// `--model` is a convenience that sets both gen and eval models, but if any
+// of the more specific flags are present they win.
 export function buildConfig(
   raw: RawCliArgs,
   env: NodeJS.ProcessEnv = process.env
 ): PipelineConfig {
+  const sharedDefault = raw.model ?? env.COVER_LETTER_MODEL ?? undefined;
+  const genModel = raw["gen-model"] ?? sharedDefault;
+  const evalModel = raw["eval-model"] ?? sharedDefault;
+
   const candidate = {
     resumePath: raw.resume,
     jobUrl: raw.job,
@@ -54,7 +64,8 @@ export function buildConfig(
     qualityThreshold:
       raw.quality !== undefined ? Number(raw.quality) : undefined,
     aiLikelihoodThreshold: raw.ai !== undefined ? Number(raw.ai) : undefined,
-    model: raw.model ?? env.COVER_LETTER_MODEL ?? undefined,
+    genModel,
+    evalModel,
   };
   return PipelineConfigSchema.parse(candidate);
 }

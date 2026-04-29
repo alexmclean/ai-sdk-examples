@@ -40,12 +40,17 @@ export const PipelineConfigSchema = z
     maxIterations: z.number().int().min(1).max(10).default(3),
     qualityThreshold: z.number().min(0).max(10).default(8),
     aiLikelihoodThreshold: z.number().min(0).max(10).default(3),
-    model: z.string().min(1).default("claude-sonnet-4-6"),
+    genModel: z.string().min(1).default("anthropic:claude-sonnet-4-6"),
+    evalModel: z.string().min(1).optional(),
   })
   .refine((cfg) => Boolean(cfg.jobUrl) || Boolean(cfg.jobFilePath), {
     message: "Either jobUrl or jobFilePath must be provided",
     path: ["jobUrl"],
-  });
+  })
+  .transform((cfg) => ({
+    ...cfg,
+    evalModel: cfg.evalModel ?? cfg.genModel,
+  }));
 
 export type PipelineConfig = z.infer<typeof PipelineConfigSchema>;
 export type PipelineConfigInput = z.input<typeof PipelineConfigSchema>;

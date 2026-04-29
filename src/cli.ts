@@ -16,8 +16,23 @@ Options:
   --out <dir>         Output directory (default: ./output)
   --max <n>           Max iterations (default: 3)
   --quality <n>       Quality threshold 0-10 (default: 8)
-  --ai <n>            Max AI-likelihood 0-10 (default: 4)
-  --model <id>        Anthropic model id (default: claude-sonnet-4-6)
+  --ai <n>            Max AI-likelihood 0-10 (default: 3)
+  --gen-model <spec>  Model used to write the letter
+                      (default: anthropic:claude-sonnet-4-6)
+  --eval-model <spec> Model used to evaluate the letter
+                      (default: same as --gen-model)
+                      Tip: use a different provider here for a real second
+                      opinion, e.g. --gen-model anthropic:claude-sonnet-4-6
+                      --eval-model openai:gpt-4o-mini
+  --model <spec>      Convenience: sets both --gen-model and --eval-model.
+
+Model spec format: "<provider>:<model-id>", e.g. "openai:gpt-4o-mini" or
+"anthropic:claude-sonnet-4-6". Providers: anthropic, openai. Bare ids are
+accepted when the prefix is unambiguous (claude-*, gpt-*, o1*, o3*).
+
+Required env vars (per provider used):
+  ANTHROPIC_API_KEY  for anthropic:* models
+  OPENAI_API_KEY     for openai:* models
 `;
 
 async function main(): Promise<void> {
@@ -27,20 +42,25 @@ async function main(): Promise<void> {
     process.exit(2);
   }
   const config = buildConfig(raw);
-  const model = getModel(config.model);
+  const genModel = getModel(config.genModel);
+  const evalModel =
+    config.evalModel === config.genModel ? genModel : getModel(config.evalModel);
 
   const { files, result, jobTitle } = await runPipeline(config, {
-    model,
+    genModel,
+    evalModel,
     log: (msg) => process.stdout.write(`[cover-letter] ${msg}\n`),
   });
 
   process.stdout.write(
     [
       "",
-      `Job:     ${jobTitle}`,
-      `Letter:  ${files.letterPath}`,
-      `Eval:    ${files.evalPath}`,
-      `Quality: ${result.evaluation.qualityScore}/10  ·  AI-likelihood: ${result.evaluation.aiLikelihoodScore}/10`,
+      `Job:        ${jobTitle}`,
+      `Letter:     ${files.letterPath}`,
+      `Eval:       ${files.evalPath}`,
+      `Gen model:  ${config.genModel}`,
+      `Eval model: ${config.evalModel}`,
+      `Quality:    ${result.evaluation.qualityScore}/10  ·  AI-likelihood: ${result.evaluation.aiLikelihoodScore}/10`,
       "",
     ].join("\n")
   );

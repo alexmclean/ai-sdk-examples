@@ -59,7 +59,29 @@ describe("PipelineConfigSchema", () => {
     expect(cfg.maxIterations).toBe(3);
     expect(cfg.qualityThreshold).toBe(8);
     expect(cfg.aiLikelihoodThreshold).toBe(3);
-    expect(cfg.model).toBe("claude-sonnet-4-6");
+    expect(cfg.genModel).toBe("anthropic:claude-sonnet-4-6");
+    expect(cfg.evalModel).toBe("anthropic:claude-sonnet-4-6");
+  });
+
+  it("defaults evalModel to genModel when only genModel is set", () => {
+    const cfg = PipelineConfigSchema.parse({
+      resumePath: "/tmp/r.pdf",
+      jobUrl: "https://example.com/job",
+      genModel: "openai:gpt-4o-mini",
+    });
+    expect(cfg.genModel).toBe("openai:gpt-4o-mini");
+    expect(cfg.evalModel).toBe("openai:gpt-4o-mini");
+  });
+
+  it("keeps evalModel distinct when both are set", () => {
+    const cfg = PipelineConfigSchema.parse({
+      resumePath: "/tmp/r.pdf",
+      jobUrl: "https://example.com/job",
+      genModel: "anthropic:claude-sonnet-4-6",
+      evalModel: "openai:gpt-4o-mini",
+    });
+    expect(cfg.genModel).toBe("anthropic:claude-sonnet-4-6");
+    expect(cfg.evalModel).toBe("openai:gpt-4o-mini");
   });
 
   it("rejects an invalid URL", () => {

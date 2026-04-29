@@ -62,9 +62,51 @@ describe("buildConfig", () => {
   it("falls back to env COVER_LETTER_MODEL when --model not set", () => {
     const cfg = buildConfig(
       { resume: "/tmp/r.pdf", job: "https://example.com/j" },
-      { COVER_LETTER_MODEL: "claude-opus-4-7" }
+      { COVER_LETTER_MODEL: "anthropic:claude-opus-4-7" }
     );
-    expect(cfg.model).toBe("claude-opus-4-7");
+    expect(cfg.genModel).toBe("anthropic:claude-opus-4-7");
+    expect(cfg.evalModel).toBe("anthropic:claude-opus-4-7");
+  });
+
+  it("--model sets both gen and eval models", () => {
+    const cfg = buildConfig(
+      {
+        resume: "/tmp/r.pdf",
+        job: "https://example.com/j",
+        model: "openai:gpt-4o-mini",
+      },
+      {}
+    );
+    expect(cfg.genModel).toBe("openai:gpt-4o-mini");
+    expect(cfg.evalModel).toBe("openai:gpt-4o-mini");
+  });
+
+  it("--gen-model and --eval-model can target different providers", () => {
+    const cfg = buildConfig(
+      {
+        resume: "/tmp/r.pdf",
+        job: "https://example.com/j",
+        "gen-model": "anthropic:claude-sonnet-4-6",
+        "eval-model": "openai:gpt-4o-mini",
+      },
+      {}
+    );
+    expect(cfg.genModel).toBe("anthropic:claude-sonnet-4-6");
+    expect(cfg.evalModel).toBe("openai:gpt-4o-mini");
+  });
+
+  it("specific model flags override --model", () => {
+    const cfg = buildConfig(
+      {
+        resume: "/tmp/r.pdf",
+        job: "https://example.com/j",
+        model: "anthropic:claude-sonnet-4-6",
+        "eval-model": "openai:gpt-4o-mini",
+      },
+      {}
+    );
+    expect(cfg.genModel).toBe("anthropic:claude-sonnet-4-6");
+    expect(cfg.evalModel).toBe("openai:gpt-4o-mini");
   });
 
   it("rejects an invalid url via Zod", () => {
