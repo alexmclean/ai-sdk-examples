@@ -1,0 +1,28 @@
+{
+  "name": "cover-letter-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Generates and self-evaluates cover letters using the Vercel AI SDK + Anthropic Claude.",
+  "scripts": {
+    "start": "tsx src/cli.ts",
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.0",
+    "ai": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "node-html-parser": "^6.1.13",
+    "pdf-parse": "^1.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/pdf-parse": "^1.1.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.2"
+  }
+}
