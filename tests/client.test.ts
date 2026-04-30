@@ -29,6 +29,20 @@ describe("parseModelSpec", () => {
     expect(parseModelSpec("o1-preview").provider).toBe("openai");
   });
 
+  it("parses an explicit google prefix", () => {
+    expect(parseModelSpec("google:gemini-2.5-pro")).toEqual({
+      provider: "google",
+      modelId: "gemini-2.5-pro",
+    });
+  });
+
+  it("infers google from a bare gemini id", () => {
+    expect(parseModelSpec("gemini-2.5-pro")).toEqual({
+      provider: "google",
+      modelId: "gemini-2.5-pro",
+    });
+  });
+
   it("trims whitespace", () => {
     expect(parseModelSpec("  openai:gpt-4o  ")).toEqual({
       provider: "openai",

@@ -1,13 +1,13 @@
 # Cover Letter Generator
 
-Generates a tailored cover letter from a resume PDF and a job posting URL, then self-evaluates it for quality and how AI-generated it sounds. Iterates up to N times to improve weak drafts. Built on the Vercel AI SDK with both Anthropic Claude and OpenAI GPT support — you can use one provider to write and a different one to evaluate, for a real second opinion. Schemas enforced with Zod.
+Generates a tailored cover letter from a resume PDF and a job posting URL, then self-evaluates it for quality and how AI-generated it sounds. Iterates up to N times to improve weak drafts. Built on the Vercel AI SDK with Anthropic Claude, OpenAI GPT, and Google Gemini support — you can use one provider to write and a different one to evaluate, for a real second opinion. Schemas enforced with Zod.
 
 ## Setup
 
 ```sh
 npm install
 cp .env.example .env
-# Add at least one of ANTHROPIC_API_KEY or OPENAI_API_KEY (whichever providers you'll use).
+# Add at least one of ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY (whichever providers you'll use).
 ```
 
 ## Run
@@ -41,7 +41,7 @@ npm start -- \
 | `--eval-model` | same as `--gen-model` | Model that grades the letter |
 | `--model` | — | Convenience: sets both gen and eval models |
 
-Model spec format: `<provider>:<model-id>`, e.g. `openai:gpt-4o-mini` or `anthropic:claude-sonnet-4-6`. Bare ids work too when the prefix is unambiguous (`claude-*`, `gpt-*`, `o1*`, `o3*`).
+Model spec format: `<provider>:<model-id>`, e.g. `openai:gpt-4o-mini`, `anthropic:claude-sonnet-4-6`, or `google:gemini-2.5-pro`. Supported providers: `anthropic`, `openai`, `google`. Bare ids work too when the prefix is unambiguous (`claude-*`, `gpt-*`, `o1*`, `o3*`, `gemini-*`).
 
 Outputs `<job-slug>-cover-letter.md` and `<job-slug>-eval.json` in the output directory.
 

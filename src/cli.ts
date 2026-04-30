@@ -26,13 +26,15 @@ Options:
                       --eval-model openai:gpt-4o-mini
   --model <spec>      Convenience: sets both --gen-model and --eval-model.
 
-Model spec format: "<provider>:<model-id>", e.g. "openai:gpt-4o-mini" or
-"anthropic:claude-sonnet-4-6". Providers: anthropic, openai. Bare ids are
-accepted when the prefix is unambiguous (claude-*, gpt-*, o1*, o3*).
+Model spec format: "<provider>:<model-id>", e.g. "openai:gpt-4o-mini",
+"anthropic:claude-sonnet-4-6", or "google:gemini-2.5-pro". Providers:
+anthropic, openai, google. Bare ids are accepted when the prefix is
+unambiguous (claude-*, gpt-*, o1*, o3*, gemini-*).
 
 Required env vars (per provider used):
-  ANTHROPIC_API_KEY  for anthropic:* models
-  OPENAI_API_KEY     for openai:* models
+  ANTHROPIC_API_KEY              for anthropic:* models
+  OPENAI_API_KEY                 for openai:* models
+  GOOGLE_GENERATIVE_AI_API_KEY   for google:* (Gemini) models
 `;
 
 async function main(): Promise<void> {

@@ -1,20 +1,26 @@
 import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import type { LanguageModel } from "ai";
 
-export type ProviderId = "anthropic" | "openai";
+export type ProviderId = "anthropic" | "openai" | "google";
 
 export interface ParsedModelSpec {
   provider: ProviderId;
   modelId: string;
 }
 
-const SUPPORTED_PROVIDERS: readonly ProviderId[] = ["anthropic", "openai"];
+const SUPPORTED_PROVIDERS: readonly ProviderId[] = [
+  "anthropic",
+  "openai",
+  "google",
+];
 
 // A model spec is "<provider>:<modelId>" (e.g. "openai:gpt-4o-mini").
 // Bare ids are accepted for convenience: "claude-*" → anthropic, "gpt-*" /
-// "o<digit>-*" → openai. Anything else without a prefix is rejected so
-// typos fail fast instead of silently going to the default provider.
+// "o<digit>-*" → openai, "gemini-*" → google. Anything else without a prefix
+// is rejected so typos fail fast instead of silently going to the default
+// provider.
 export function parseModelSpec(spec: string): ParsedModelSpec {
   const trimmed = spec.trim();
   if (!trimmed) throw new Error("Model spec is empty");
@@ -40,6 +46,9 @@ export function parseModelSpec(spec: string): ParsedModelSpec {
   if (/^(gpt|o\d)/i.test(trimmed)) {
     return { provider: "openai", modelId: trimmed };
   }
+  if (/^gemini/i.test(trimmed)) {
+    return { provider: "google", modelId: trimmed };
+  }
 
   throw new Error(
     `Cannot infer provider for model id "${spec}". Prefix it explicitly, e.g. "anthropic:${spec}" or "openai:${spec}".`
@@ -55,6 +64,10 @@ export function getModel(spec: string): LanguageModel {
   if (provider === "openai") {
     requireEnv("OPENAI_API_KEY");
     return openai(modelId);
+  }
+  if (provider === "google") {
+    requireEnv("GOOGLE_GENERATIVE_AI_API_KEY");
+    return google(modelId);
   }
   // Exhaustiveness — TS will complain here if a provider is added without a branch.
   const exhaustive: never = provider;
